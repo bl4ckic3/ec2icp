@@ -1,5 +1,8 @@
 # Object files
 *.o
+*.o2
+*.o3
+*.o4
 *.ko
 *.obj
 *.elf
@@ -30,3 +33,9 @@
 
 # Debug files
 *.dSYM/
+
+pc
+eps
+cam
+cdhs
+

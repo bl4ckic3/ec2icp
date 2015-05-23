@@ -1,0 +1,157 @@
+
+// 		if (!(start_found && end_found)) {
+// 			malformed = TRUE;
+// 			break;
+// 		}
+
+// 		// Check if the packet is impossibly short.
+// 		if (packet_end - packet_start + 1 < ICP_MIN_PACKET_LENGTH - 3) {
+// 			malformed = TRUE;
+// 			ICP_ERROR( g_conf->link_number, ICP_TOO_SHORT_PACKET, &g_conf->rx_buffer[packet_start], packet_end - packet_start + 1 );
+// 			// ICP_DEBUG("Malformed packet: packet is impossibly short.");
+// 			goto handle_malformed;
+// 		}
+
+// 		// Unescape the data and the checksum.
+// 		for (i=j=packet_start; i <= packet_end; i++, j++) {
+// 			if (g_conf->rx_buffer[i] == ESCAPE_BYTE) {
+// 				if ( i == packet_end ) {
+// 					// An escape byte can't be the last byte in the packet.
+// 					malformed = TRUE;
+// 					ICP_ERROR( g_conf->link_number, ICP_ESCAPE_ERROR, &g_conf->rx_buffer[packet_start], packet_end - packet_start + 1 );
+// 					// ICP_DEBUG("Malformed packet: escape byte is the last byte of the packet.");
+// 					goto handle_malformed;
+// 				} else {
+// 					// Unescape.
+// 					i++;
+// 					g_conf->rx_buffer[j] = g_conf->rx_buffer[i] ^ ESCAPE_XOR;
+// 				}
+// 			} else {
+// 				g_conf->rx_buffer[j] = g_conf->rx_buffer[i];
+// 			}
+// 		}
+// 		payload_start = packet_start + PAYLOAD_OFFSET;
+// 		// j is poining to a byte right after the two checksum bytes. 
+// 		// payload_end must point to the first checksum byte.
+// 		payload_end = j - 2;
+
+// 		// Payload can be zero-length.
+// 		if (payload_end < payload_start) {
+// 			// ICP_DEBUG("Malformed packet: payload too short.");
+// 			malformed = TRUE;
+// 			ICP_ERROR( g_conf->link_number, ICP_TOO_SHORT_PAYLOAD, &g_conf->rx_buffer[packet_start], packet_end - packet_start + 1 );
+// 			goto handle_malformed;
+// 		}
+
+// 			// Validate checksums.
+// 		{
+// 			uint8_t checksumA = g_conf->rx_buffer[payload_end];
+// 			uint8_t checksumB = g_conf->rx_buffer[payload_end + 1];
+// 			uint8_t checksumA_computed = 0, checksumB_computed = 0;
+
+// 			// Compute the packet's checksum and confirm its data integrity.
+// 			fletcher16( &checksumA_computed, &checksumB_computed,
+// 				&g_conf->rx_buffer[packet_start],
+// 				payload_end - packet_start );
+// 			if (checksumA_computed != checksumA ||
+// 				checksumB_computed != checksumB) {
+// 					// ICP_DEBUG("Malformed packet: checksums don't match.");
+// 					malformed = TRUE;
+// 					ICP_ERROR( g_conf->link_number, ICP_FAWLTY_CHECKSUM, &g_conf->rx_buffer[packet_start], packet_end - packet_start + 1 );
+// 					goto handle_malformed;
+// 			}
+// 		}
+// 		// Process packet's sequence numbers.
+// 		{
+// 			seqnum_t packet_request_num = seqnum_modulo( 
+// 				g_conf->rx_buffer[packet_start + SEQNUM_OFFSET] >> 4 );
+// 			seqnum_t packet_sequence_num = seqnum_modulo( 
+// 				g_conf->rx_buffer[packet_start + SEQNUM_OFFSET]);
+
+// 			// Update g_conf's sequence number window based on the packet's request number.
+// 			g_conf->sequence_base = packet_request_num;
+// 			g_conf->sequence_max  = seqnum_modulo( g_conf->sequence_base + g_conf->window_size - 1 );
+
+// 			// Is this a normal packet or an internal one?
+// 			if (g_conf->rx_buffer[packet_start + PRIORITY_OFFSET] < ICP_NUM_PRIORITIES) {
+// 				icp_packet_t packet;
+// 				g_conf->must_send_ack = TRUE;
+// 				// Check that the packet's sequence number is what we are expecting to receive.
+// 				if (packet_sequence_num != g_conf->request_number) {
+// 					ICP_ERROR( g_conf->link_number, ICP_PACKET_RECEIVED_OUT_OF_ORDER, &g_conf->rx_buffer[packet_start], packet_end - packet_start + 1 );
+// 					malformed = TRUE;
+// 					goto handle_malformed;
+// 				}
+// 				// Let the ICP core decide what to do with this packet.
+// 				// If it can't store or format it, we must consider this packet to be undelivered.
+// 				packet.data_length = payload_end - payload_start;
+// 				if (packet.data_length == 0) {
+// 					packet.data = NULL;
+// 				} else {
+// 					packet.data = &g_conf->rx_buffer[payload_start];
+// 				}
+// 				packet.source = g_conf->rx_buffer[packet_start + SOURCE_OFFSET];
+// 				packet.destination = g_conf->rx_buffer[packet_start + DESTINATION_OFFSET];
+// 				packet.priority = g_conf->rx_buffer[packet_start + PRIORITY_OFFSET];
+
+// 				packet_count++;
+// 				if (icp_handle_received_packet( g_conf->link_number, &packet ) == ICP_SUCCESS) {
+// 					increment_seqnum( g_conf->request_number );
+// 				}
+// 			} else if (g_conf->rx_buffer[packet_start + PRIORITY_OFFSET] == SYNCHRONIZATION_PACKET_CODE) {
+// 				// ICP_DEBUG( "Received a synchronization packet on g_conf #%d", g_conf->link_number );
+// 				g_conf->request_number = packet_sequence_num;
+// 				reset_g_conf_seqnums( g_conf );
+// 			}
+// 			ICP_DEBUG_(if (g_conf->rx_buffer[packet_start + PRIORITY_OFFSET] == ACK_PACKET_CODE) {
+// 				// ICP_DEBUG("\tReceived an ACK");
+// 			});
+// 		}
+
+// handle_malformed:
+// 		if (malformed) {
+// 			g_conf->must_send_ack = TRUE;
+// 		}
+// 	} // while(TRUE)
+
+
+// 	// Discard bytes from the buffer's beginning that were either processed
+// 	// or can't be a part of any packet (are junk bytes).
+
+// 	// The buffer contents will be moved towards its beginning by this many bytes.
+// 	shift_left = 0;
+// 	{
+// 		if (start_found) {
+// 			// The buffer's tail has a starting sync byte.
+// 			// Keep it and everything after it.
+// 			shift_left = packet_start - 1;
+// 		} else {
+// 			// No start sync bytes found in the buffer's tail.
+// 			// Keep only the last couple of bytes to not discard any start sync bytes we could not check.
+// 			// But do not include bytes from a correctly parsed packet.
+// 			if (!malformed && end_found) {
+// 				shift_left = packet_end + 3;
+// 			}
+// 			if (buffer_position - 3 > shift_left)
+// 				shift_left = buffer_position - 3;
+// 		}
+// 		if (shift_left > 0) {
+// 			if( g_conf->set_bytes_in_interrupt_cb != NULL )
+// 				((icp_set_bytes_in_interrupt_cb_t) g_conf->set_bytes_in_interrupt_cb)( g_conf->link_number, FALSE, g_conf->set_bytes_in_interrupt_cb.user_data );
+// 			tmp_position = g_conf->rx_buf_pos;
+// 			// It is expected that this implementation of memmove copies bytes in
+// 			// the direction of lower to higher indices.
+// 			icp_memmove( g_conf->rx_buffer, &g_conf->rx_buffer[shift_left], tmp_position - shift_left );
+// 			g_conf->rx_buf_pos -= shift_left;
+// 			if( g_conf->set_bytes_in_interrupt_cb != NULL )
+// 				((icp_set_bytes_in_interrupt_cb_t) g_conf->set_bytes_in_interrupt_cb)( g_conf->link_number, TRUE, g_conf->set_bytes_in_interrupt_cb.user_data );
+
+// 			// ICP_DEBUG("Removed processed bytes from buffer:");
+// 			// ICP_DEBUG("\t%d bytes: [", g_conf->rx_buf_pos );
+// 			ICP_DEBUG_({
+// 				for (i=0; i < g_conf->rx_buf_pos; i++) {
+// 					printf("%2x ", g_conf->rx_buffer[i]);
+// 				}
+// 				printf("]\n");
+// 			});
+// 		}
