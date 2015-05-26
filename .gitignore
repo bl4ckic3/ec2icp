@@ -38,4 +38,6 @@ pc
 eps
 cam
 cdhs
-
+bus
+test
+*.bak
