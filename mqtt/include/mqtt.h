@@ -7,8 +7,8 @@
 #define TIMEOUT     10000L
 
 typedef enum signal_state_et{
-	LOW = 0,
-	HIGH,
+	INACTIVE = 0,
+	ACTIVE,
 	NUM_OF_SIG_STATES
 }signal_state_t;
 

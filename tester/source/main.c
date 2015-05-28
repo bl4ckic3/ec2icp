@@ -256,6 +256,7 @@ if (FALSE) {
 		  	while (pch != NULL)
 		  	{
 		    	strcpy(sub_cmd[i++], pch);
+		    	DEBUG("sub_cmd[%d] = %s - %s", i-1, sub_cmd[i-1], (strncmp(sub_cmd[i-1], "set", 3) == 0 ? "TRUE" : "FALSE"));
 		    	pch = strtok (NULL, " ");
 		  	}
 
@@ -292,7 +293,8 @@ if (FALSE) {
 				strncmp(sub_cmd[0], "update", 6) == 0 ||
 				strncmp(sub_cmd[0], "reset", 5) == 0 ||
 				strncmp(sub_cmd[0], "stopupdate", 10) == 0 ||
-				strncmp(sub_cmd[0], "sync", 4) == 0) {
+				strncmp(sub_cmd[0], "sync", 4) == 0 ||
+				strncmp(sub_cmd[0], "time", 4) == 0) {
 				LOG_INFO("Sending '%s' to all.", sub_cmd[0]);
 				sent = FALSE;
 				strcpy(str, sub_cmd[0]);
@@ -302,7 +304,8 @@ if (FALSE) {
 			} else if (strncmp(sub_cmd[1], "clean", 5) == 0 ||
 				strncmp(sub_cmd[1], "update", 6) == 0||
 				strncmp(sub_cmd[1], "stopupdate", 10) == 0 ||
-				strncmp(sub_cmd[1], "reset", 5) == 0) {
+				strncmp(sub_cmd[1], "reset", 5) == 0 ||
+				strncmp(sub_cmd[1], "time", 4) == 0) {
 				CHECK_EXIT(receiver != NUM_OF_NODES, "Invalid receiver.");
 				LOG_INFO("Sending '%s' to %s.", sub_cmd[1], mac_addrs[receiver]);
 				strcpy(str, sub_cmd[1]);
@@ -323,7 +326,7 @@ if (FALSE) {
 				strcpy(str, sub_cmd[2]);
 			}else if (strncmp(sub_cmd[1], "set", 3) == 0 ) {
 				CHECK_EXIT(receiver != INVALID_MAC_ADDR, "Invalid receiver.");
-				
+
 				if ( (strncmp(sub_cmd[2], "icp", 3) == 0 ||
 					 strncmp(sub_cmd[2], "mqtt", 4)  == 0 ||
 					 strncmp(sub_cmd[2], "sys", 3)   == 0 ||
@@ -354,7 +357,8 @@ if (FALSE) {
 					 strncmp(sub_cmd[4], "false", 5)  == 0)) {
 					LOG_INFO("Sending '%s %s %s %s' to %s...", sub_cmd[1], sub_cmd[2], sub_cmd[3], sub_cmd[4], mac_addrs[receiver]);
 				 */{
-					LOG_INFO("Failed to cmd to send.")
+					LOG_WARN("Failed to send cmd.")
+					LOG_INFO("command example: [eps|pc|...|all] set [icp|sys|mqtt|all] [debug|err|warn|info|all] [true|false]");
 					goto fail;
 				}
 

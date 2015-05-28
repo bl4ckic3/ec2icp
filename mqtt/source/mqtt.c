@@ -7,9 +7,9 @@
 
 volatile MQTTAsync_token 	deliveredtoken;
 
-signal_state_t g_access = LOW;
-signal_state_t g_shudup = LOW;
-signal_state_t g_gpintl = LOW;
+signal_state_t g_access = INACTIVE;
+signal_state_t g_shudup = INACTIVE;
+signal_state_t g_gpintl = INACTIVE;
 
 char		*sim_topic;
 char		*sim_dbg_topic;
@@ -249,16 +249,16 @@ int msgarrvd(void *context, char *topicName, int topicLen, MQTTAsync_message *me
 		case TOPIC_TEST:
 			break;
 		case TOPIC_PRIM_ACCESS_OUT:
-			if (strncmp(message->payload, "HIGH", 4) == 0 && g_access != HIGH){ 
-				g_access = HIGH;
+			if (strncmp(message->payload, "ACTIVE", 6) == 0 && g_access != ACTIVE){ 
+				g_access = ACTIVE;
 
 				strcpy(payload, message->payload);
 				payload_len = message->payloadlen;
 
 				line_is_mine = TOPIC_PRIM_ACCESS;
 				update_now = TRUE;
-			} else if (strncmp(message->payload, "LOW", 3) == 0){
-				g_access = LOW;
+			} else if (strncmp(message->payload, "INACTIVE", 8) == 0){
+				g_access = INACTIVE;
 
 				strcpy((char *)payload, (char *)message->payload);
 				payload_len = (message->payloadlen);
@@ -268,16 +268,16 @@ int msgarrvd(void *context, char *topicName, int topicLen, MQTTAsync_message *me
 			}
 			break;
 		case TOPIC_PRIM_GPINTL_OUT:
-			if (strncmp(message->payload, "HIGH", 4) == 0 && g_gpintl != HIGH){ 
-				g_gpintl = HIGH;
+			if (strncmp(message->payload, "ACTIVE", 6) == 0 && g_gpintl != ACTIVE){ 
+				g_gpintl = ACTIVE;
 
 				strcpy((char *)payload, (char *)message->payload);
 				payload_len = message->payloadlen;
 
 				line_is_mine = TOPIC_PRIM_GPINTL;
 				update_now = TRUE;
-			} else if (strncmp(message->payload, "LOW", 3) == 0){
-				g_gpintl = LOW;
+			} else if (strncmp(message->payload, "INACTIVE", 8) == 0){
+				g_gpintl = INACTIVE;
 
 				strcpy((char *)payload, (char *)message->payload);
 				payload_len = message->payloadlen;
@@ -287,16 +287,16 @@ int msgarrvd(void *context, char *topicName, int topicLen, MQTTAsync_message *me
 			}
 			break;
 		case TOPIC_PRIM_SHUDUP_OUT:
-			if (strncmp(message->payload, "HIGH", 4) == 0 && g_shudup != HIGH){ 
-				g_shudup = HIGH;
+			if (strncmp(message->payload, "ACTIVE", 6) == 0 && g_shudup != ACTIVE){ 
+				g_shudup = ACTIVE;
 
 				strcpy((char *)payload, (char *)message->payload);
 				payload_len = message->payloadlen;
 
 				line_is_mine = TOPIC_PRIM_SHUDUP;
 				update_now = TRUE;
-			} else if (strncmp(message->payload, "LOW", 3) == 0){
-				g_shudup = LOW;
+			} else if (strncmp(message->payload, "INACTIVE", 8) == 0){
+				g_shudup = INACTIVE;
 
 				strcpy((char *)payload, (char *)message->payload);
 				payload_len = message->payloadlen;
@@ -307,24 +307,31 @@ int msgarrvd(void *context, char *topicName, int topicLen, MQTTAsync_message *me
 			break;
 		default:
 			if (strncmp(message->payload, "reset", 5) == 0){
-				LOG_INFO("Reseting signal states to LOW.");
-				g_access = LOW;
-				g_shudup = LOW;
-				g_gpintl = LOW;
+				LOG_INFO("Reseting signal states to INACTIVE.");
+				g_access = INACTIVE;
+				g_shudup = INACTIVE;
+				g_gpintl = INACTIVE;
+				// strcpy((char *)payload, (char *)message->payload);
+				// payload_len = (message->payloadlen);
 
-				strcpy((char *)payload, (char *)message->payload);
-				payload_len = (message->payloadlen);
-
-				line_is_mine = TOPIC_PRIM_ACCESS;
-				update_now = TRUE;
+				// line_is_mine = TOPIC_PRIM_ACCESS;
+				// update_now = TRUE;
 				break;
 			} 
 			if (strncmp(message->payload, "set", 3) == 0){
 				Interpreter(message->payload, message->payloadlen);
 				break;
 			} 
+			if (strncmp(message->payload, "time", 4) == 0){
+				LOG_INFO("<-- My time.");
+				break;
+			}
 			if (strncmp(message->payload, "sync", 4) == 0){
 				synctime();
+				break;
+			}
+			if (strncmp(message->payload, "clean", 5) == 0){
+				printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 				break;
 			}
 			MQTT_DEBUG("unknown topic\n");
@@ -337,31 +344,31 @@ int msgarrvd(void *context, char *topicName, int topicLen, MQTTAsync_message *me
 		case TOPIC_TEST:
 			break;
 		case TOPIC_PRIM_ACCESS:
-			if (strncmp(message->payload, "HIGH", 4) == 0 && !line_is_mine){
-				strcpy(str, "HIGH by ");
+			if (strncmp(message->payload, "ACTIVE", 6) == 0 && !line_is_mine){
+				strcpy(str, "ACTIVE by ");
 				strcat(str, mac_addrs[local_mac_addr]);
 
-				g_access = HIGH;
+				g_access = ACTIVE;
 				
 				if (strncmp(message->payload, str, strlen(str)) == 0){
 					line_is_mine = TRUE;
 				} else {
-					icp_notify_acces_high();
+					icp_notify_acces_active();
 				}
 
-			} else if (strncmp(message->payload, "LOW", 3) == 0){
-				g_access = LOW;
-				icp_notify_acces_low();
+			} else if (strncmp(message->payload, "INACTIVE", 8) == 0){
+				g_access = INACTIVE;
+				icp_notify_acces_inactive();
 				line_is_mine = FALSE;
 			}
 			break;
 		case TOPIC_PRIM_GPINTL:
 			break;
 		case TOPIC_PRIM_SHUDUP:
-			if (strncmp(message->payload, "HIGH", 4) == 0){
-				g_shudup = HIGH;
-			} else if (strncmp(message->payload, "LOW", 3) == 0){
-				g_shudup = LOW;
+			if (strncmp(message->payload, "ACTIVE", 6) == 0){
+				g_shudup = ACTIVE;
+			} else if (strncmp(message->payload, "INACTIVE", 8) == 0){
+				g_shudup = INACTIVE;
 			}
 			break;
 		case TOPIC_PRIM_RS485:
@@ -380,6 +387,10 @@ int msgarrvd(void *context, char *topicName, int topicLen, MQTTAsync_message *me
 			// icp_bytes_in(message->payload, message->payloadlen );
 			break;
 		default:
+			if (strncmp(message->payload, "time", 4) == 0){
+				LOG_INFO("<-- My time.");
+				break;
+			}
 			if (strncmp(message->payload, "update", 6) == 0){
 				update_now = TRUE;
 				break;

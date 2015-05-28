@@ -102,12 +102,12 @@ clock_gettime(CLOCK_REALTIME, &ts);
 #define CHECK_WARN(A, M, ...) 				_CHECK_WARN 	(LOG_WARN, A, M, ##__VA_ARGS__)
 #define CHECK_INFO(A, M, ...) 				_CHECK_INFO 	(LOG_INFO, A, M, ##__VA_ARGS__)
 #define CHECK_DEBUG(A, M, ...) 				_CHECK_DEBUG 	(DEBUG, A, M, ##__VA_ARGS__)
-#define CHECK_EXIT(A, M, ...) 				_CHECK_DEBUG 	(LOG_EXIT, A, M, ##__VA_ARGS__)
+#define CHECK_EXIT(A, M, ...) 				_CHECK_EXIT 	(LOG_EXIT, A, M, ##__VA_ARGS__)
 #define CHECK_ERR_RE(A, E, M, ...) 			_CHECK_ERR_RE	(LOG_ERR, A, E, M, ##__VA_ARGS__)
 #define CHECK_WARN_RE(A, E, M, ...) 		_CHECK_WARN_RE	(LOG_WARN, A, E, M, ##__VA_ARGS__)
 #define CHECK_INFO_RE(A, E, M, ...) 		_CHECK_INFO_RE	(LOG_INFO, A, E, M, ##__VA_ARGS__)
 #define CHECK_DEBUG_RE(A, E, M, ...) 		_CHECK_DEBUG_RE	(DEBUG, A, E, M, ##__VA_ARGS__)
-#define CHECK_EXIT_RE(A, E, M, ...) 		_CHECK_DEBUG_RE	(LOG_EXIT, A, E, M, ##__VA_ARGS__)
+#define CHECK_EXIT_RE(A, E, M, ...) 		_CHECK_EXIT_RE	(LOG_EXIT, A, E, M, ##__VA_ARGS__)
 
 #define SENTINEL(M, ...)  { LOG_ERR(M, ##__VA_ARGS__); errno=0; goto error; }
 #define CHECK_MEM(A) CHECK_ERR((A), "Out of memory.")

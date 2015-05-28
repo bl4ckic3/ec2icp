@@ -14,7 +14,7 @@ extern "C" {
  * TODO
  */
 typedef enum mac_addr_et{
-	BROADCAST = 1, ///< DO NOT DELETE THIS, IMPORTAND FOR COBS AT CODEING AND DECODING
+	BROADCAST,
 	NODE_PC,
 	NODE_CAM,
 	NODE_EPS,
@@ -28,7 +28,6 @@ typedef enum mac_addr_et{
  * TODO
  */
 static char mac_addrs[NUM_OF_NODES][32] = { 
-	"GHOST",
 	"BROADCAST",
 	"PC",
 	"CAM",

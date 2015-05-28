@@ -205,7 +205,7 @@ typedef uint8_t (*icp_error_cb_t)( icp_error_t error, uint8_t* packet_data, buf_
 		0 )
 
 /**
- * Callback function used by ICP to set ACCESS signal to HIGH.
+ * Callback function used by ICP to set ACCESS signal to ACTIVE.
  * 
  * @retval ICP_SUCCESS Signal line was successfully set.
  * @retval ICP_BUSY Could not set signal.
@@ -218,7 +218,7 @@ typedef uint8_t (*icp_set_access_sig_cb_t)( void );
 		0 )
 
 /**
- * Callback function used by ICP to clear ACCESS signal to LOW.
+ * Callback function used by ICP to clear ACCESS signal to INACTIVE.
  * 
  * @retval ICP_SUCCESS Signal line was successfully cleared.
  * @retval ICP_BUSY Could not clear signal.
@@ -233,8 +233,8 @@ typedef uint8_t (*icp_clear_access_sig_cb_t)( void );
 /**
  * Callback function used by ICP to get ACCESS signal.
  * 
- * @retval 0 Signal line is LOW.
- * @retval 1 Signal line is HIGH.
+ * @retval 0 Signal line is INACTIVE.
+ * @retval 1 Signal line is ACTIVE.
  */
 // TODO CB vs field in struct mainida töös, miks, turvalisem
 typedef uint8_t (*icp_get_access_sig_cb_t)( void );
@@ -245,7 +245,7 @@ typedef uint8_t (*icp_get_access_sig_cb_t)( void );
 		0 )
 
 /**
- * Callback function used by ICP to set SHUDUP signal to HIGH.
+ * Callback function used by ICP to set SHUDUP signal to ACTIVE.
  * 
  * @retval ICP_SUCCESS Signal line was successfully set.
  * @retval ICP_BUSY Could not set signal.
@@ -258,7 +258,7 @@ typedef uint8_t (*icp_set_shudup_sig_cb_t)( void );
 		0 )
 
 /**
- * Callback function used by ICP to clear SHUDUP signal to LOW.
+ * Callback function used by ICP to clear SHUDUP signal to INACTIVE.
  * 
  * @retval ICP_SUCCESS Signal line was successfully cleared.
  * @retval ICP_BUSY Could not clear signal.
@@ -273,8 +273,8 @@ typedef uint8_t (*icp_clear_shudup_sig_cb_t)( void );
 /**
  * Callback function used by ICP to get SHUDUP signal.
  * 
- * @retval 0 Signal line is LOW.
- * @retval 1 Signal line is HIGH.
+ * @retval 0 Signal line is INACTIVE.
+ * @retval 1 Signal line is ACTIVE.
  */
 typedef uint8_t (*icp_get_shudup_sig_cb_t)( void );
 
@@ -380,22 +380,22 @@ uint8_t icp_send_packet( const icp_packet_t *packet );
 uint8_t icp_notify_bytes_out_finished( void );
 
 /**
- * Function to notify ICP that ACCESS line has been set to LOW.
+ * Function to notify ICP that ACCESS line has been set to INACTIVE.
  */
-uint8_t icp_notify_acces_low(); 
+uint8_t icp_notify_acces_inactive(); 
 
 /**
- * Function to notify ICP that ACCESS line has been set to HIGH.
+ * Function to notify ICP that ACCESS line has been set to ACTIVE.
  */
-uint8_t icp_notify_acces_high(); 
+uint8_t icp_notify_acces_active(); 
 
 /**
- * Function to notify ICP that SHUDUP line has been set to LOW.
+ * Function to notify ICP that SHUDUP line has been set to INACTIVE.
  */
 uint8_t icp_notify_shudup_low(); 
 
 /**
- * Function to notify ICP that SHUDUP line has been set to HIGH.
+ * Function to notify ICP that SHUDUP line has been set to ACTIVE.
  */
 uint8_t icp_notify_shudup_high(); 
 

@@ -266,11 +266,11 @@ error:
 	return rc;
 }
 
-uint8_t icp_notify_acces_low( ) {
-	//! \note icp_notify_acces_low might be called from an interrupt. Printing must not be called
+uint8_t icp_notify_acces_inactive( ) {
+	//! \note icp_notify_acces_inactive might be called from an interrupt. Printing must not be called
 	//! from any interrupts.
 	uint8_t rc = FALSE; // Assume fail
-	ICP_CHECK_ERR(rc = ICP_GET_ACCESS_SIG() == LOW,"Access is not LOW");
+	ICP_CHECK_ERR(rc = ICP_GET_ACCESS_SIG() == INACTIVE,"Access is not INACTIVE");
 	
 	if (g_conf->waiting_for_ack && g_conf->role == TX){
 		ICP_LOG_INFO( "ACK received. ASSUME ROLE: NO_ROLE");
@@ -278,7 +278,7 @@ uint8_t icp_notify_acces_low( ) {
 		g_conf->waiting_for_ack = FALSE;
 		ICP_NOTIFY_PACKET_ACK();
 	} else if (g_conf->role == RX || g_conf->role == LISTEN_IN){ // TODO: WHAT IF BROADCAST
-		ICP_LOG_INFO( "Transmition canceled. ASSUME ROLE: NO_ROLE");
+		ICP_LOG_INFO( "Transmition canceled. ASSUME ROLE: NO_ROLE"); // TODO: WHAT IF CURRENT SYSTEM DRIVES ACCESS INACTIVE
 		g_conf->role = NO_ROLE;
 		icp_flush_rx_buffer();
 	} else if (g_conf->role == NO_ROLE){
@@ -292,11 +292,11 @@ error:
 	return rc;
 }
 
-uint8_t icp_notify_acces_high( ) {
-	//! \note icp_notify_acces_high might be called from an interrupt. Printing must not be called
+uint8_t icp_notify_acces_active( ) {
+	//! \note icp_notify_acces_active might be called from an interrupt. Printing must not be called
 	//! from any interrupts.
 	uint8_t rc = FALSE; // Assume fail
-	ICP_CHECK_ERR(rc = ICP_GET_ACCESS_SIG() == HIGH,"Access is not HIGH");
+	ICP_CHECK_ERR(rc = ICP_GET_ACCESS_SIG() == ACTIVE,"Access is not ACTIVE");
 	
 	ICP_LOG_INFO( "Someone is starting to transmit. ASSUME ROLE: RX");
 	g_conf->role = RX;
@@ -368,7 +368,7 @@ bool_t icp_process_tx_buffer( void ) {
 	
 	if (g_conf->role != TX){
 		// Wait for line to be free
-		ICP_CHECK_EXIT( ICP_GET_ACCESS_SIG() == LOW, "ICP bus is busy. Can't send data!" );
+		ICP_CHECK_EXIT( ICP_GET_ACCESS_SIG() == INACTIVE, "ICP bus is busy. Can't send data!" );
 		ICP_CHECK_EXIT( ICP_SET_ACCESS_SIG() == ICP_SUCCESS, "Could not reserve bus for transmitting. ICP bus is busy. Can't send data!" );
 		ICP_LOG_INFO( "ICP bus reserved for transmitting. ASSUME ROLE: TX");
 		g_conf->role = TX;

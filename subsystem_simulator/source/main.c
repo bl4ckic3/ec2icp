@@ -24,7 +24,7 @@ uint8_t print_packet( icp_packet_t *p_packet ) {
 	printf("   destination[%02X]:\t%s\n", p_packet->destination, mac_addrs[p_packet->destination]);
 	printf("        source[%02X]:\t%s\n", p_packet->source, mac_addrs[p_packet->source]);
 	printf("            received:\t%hu\n", p_packet->receive_timestamp);
-	printf("  data_len[%02X %02X]:\t%d +1\n", p_packet->data_length >> 8, (uint8_t)(p_packet->data_length & 0x00FF), p_packet->data_length);
+	printf("  data_len[%02X %02X]:\t%d\n", p_packet->data_length >> 8, (uint8_t)(p_packet->data_length & 0x00FF), p_packet->data_length);
 	printf("               data:\t");
 	for (i=0; i < p_packet->data_length+1; i++) {
 		putchar( i ? ' ': '[' );
@@ -111,7 +111,7 @@ icp_time_t icp_get_time_cb( void ) {
 
 uint8_t icp_notify_packet_ack_cb( void ) {
 	// MQTTAsync_message pubmsg = MQTTAsync_message_initializer;
-	// char str[64] = "HIGH by ";
+	// char str[64] = "ACTIVE by ";
 	// strcat (str, mac_addrs[local_mac_addr]);
 	// uint8_t timeout = 0;
 	// sent = FALSE;
@@ -123,7 +123,7 @@ uint8_t icp_notify_packet_ack_cb( void ) {
 
 	// sendmsg(*p_client, topic_names[TOPIC_PRIM_ACCESS_OUT], &pubmsg);
 
-	// while (g_access == LOW && timeout < 10){
+	// while (g_access == INACTIVE && timeout < 10){
 	// 	sleep(1);
 	// 	timeout++; // TODO should this be part of ICP ??
 	// }
@@ -135,7 +135,7 @@ uint8_t icp_notify_packet_ack_cb( void ) {
 
 uint8_t icp_set_access_sig_cb( void ) {
 	MQTTAsync_message pubmsg = MQTTAsync_message_initializer;
-	char str[64] = "HIGH by ";
+	char str[64] = "ACTIVE by ";
 	strcat (str, mac_addrs[local_mac_addr]);
 	uint8_t timeout = 0;
 	sent = FALSE;
@@ -147,7 +147,7 @@ uint8_t icp_set_access_sig_cb( void ) {
 
 	sendmsg(*p_client, topic_names[TOPIC_PRIM_ACCESS_OUT], &pubmsg);
 
-	while (g_access == LOW && timeout < 10){
+	while (g_access == INACTIVE && timeout < 10){
 		sleep(1);
 		timeout++; // TODO should this be part of ICP ??
 	}
@@ -157,7 +157,7 @@ uint8_t icp_set_access_sig_cb( void ) {
 
 uint8_t icp_clear_access_sig_cb( void ) {
 	MQTTAsync_message pubmsg = MQTTAsync_message_initializer;
-	char str[64] = "LOW  by ";
+	char str[64] = "INACTIVE  by ";
 	strcat (str, mac_addrs[local_mac_addr]);
 	sent = FALSE;
 
@@ -168,7 +168,7 @@ uint8_t icp_clear_access_sig_cb( void ) {
 
 	sendmsg(*p_client, topic_names[TOPIC_PRIM_ACCESS_OUT], &pubmsg);
 
-	while (g_access == HIGH);
+	while (g_access == ACTIVE);
 
 	return ICP_SUCCESS;
 }
@@ -191,7 +191,7 @@ uint8_t icp_clear_shudup_sig_cb( void ) {
 }
 
 uint8_t icp_get_shudup_sig_cb( void ) {
-	return LOW;
+	return INACTIVE;
 }
 
 struct timespec orwl_gettime(void)  {
