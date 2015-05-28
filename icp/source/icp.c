@@ -197,7 +197,7 @@ uint8_t icp_send_packet( const icp_packet_t *p_packet ) {
 	ICP_CHECK_ERR(p_packet->data_length > ICP_MIN_PAYLOAD_LENGTH, 
 					"Packet validation failed: Length of data (%d) too short.", p_packet->data_length);
 	ICP_LOG_INFO("Packet data length validation successful.");
-	data_len  = p_packet->data_length - 1;
+	data_len  = p_packet->data_length;
 
 	// Validate destination
 	ICP_CHECK_ERR(p_packet->destination < NUM_OF_NODES && p_packet->destination >= 0, 
@@ -213,7 +213,7 @@ uint8_t icp_send_packet( const icp_packet_t *p_packet ) {
 
 	g_conf->tx_buffer[buf_i++] = p_packet->destination;
 	g_conf->tx_buffer[buf_i++] = local_mac_addr;
-	g_conf->tx_buffer[buf_i++] = data_len >> 8;
+	g_conf->tx_buffer[buf_i++] = (uint8_t)(data_len >> 8);
 	g_conf->tx_buffer[buf_i++] = (uint8_t)(data_len & 0x00FF);
 
 	if (p_packet->data_length) {
@@ -223,16 +223,12 @@ uint8_t icp_send_packet( const icp_packet_t *p_packet ) {
 
 	///***  Compute the checksum and add it directly to the buffer.  ***///
 	
-	// TODO
 	// Compute the checksum and add it directly to the buffer.
-	// fletcher16(&g_conf->tx_buffer[buf_i],
-	// 	&g_conf->tx_buffer[buf_i+1],
-	// 	g_conf->tx_buffer,
-	// 	buf_i);
-	// buf_i += 2;
-	g_conf->tx_buffer[buf_i++] = 0x55;
-	g_conf->tx_buffer[buf_i++] = 0x55;
-	ICP_LOG_INFO("Calculated and added checksum to the packet.");
+	uint16_t crc = icp_crc16(g_conf->tx_buffer, buf_i);
+
+	g_conf->tx_buffer[buf_i++] = (uint8_t) (crc >> 8);
+	g_conf->tx_buffer[buf_i++] = (uint8_t) (crc & 0x00FF);
+	ICP_LOG_INFO("Calculated and added checksum (0x%04X) to the packet.", crc);
 
 	g_conf->tx_buf_end += buf_i-1;
 	ICP_LOG_INFO("Parsed packet and put %d bytes to TX buffer.", buf_i);
@@ -400,13 +396,13 @@ uint8_t icp_process_rx_buffer( void ) {
 	ICP_CHECK_EXIT(buffer_position != 0, "No bytes in RX buffer.");
 	ICP_LOG_INFO("%d bytes in RX buffer to process", buffer_position);
 
-	// ICP_DEBUG_({
-	// 	printf("[ ");
-	// 	for (i=0; i < buffer_position; i++) {
-	// 		printf("%02X ", g_conf->rx_buffer[i]);
-	// 	}
-	// 	printf("]\n");
-	// });
+	ICP_DEBUG_({
+		printf("[ ");
+		for (i=0; i < buffer_position; i++) {
+			printf("%02X ", g_conf->rx_buffer[i]);
+		}
+		printf("]\n");
+	});
 	
 	// TODO: Check if running out of buffer space!!
 	i = 0;
@@ -431,14 +427,17 @@ uint8_t icp_process_rx_buffer( void ) {
 	packet_data = (uint8_t*) icp_malloc( packet.data_length * sizeof(uint8_t) );
 
 	icp_memmove( packet_data, g_conf->rx_buffer + i , packet.data_length+1 );
+	packet.data = packet_data;
 	i += packet.data_length;
 
-	packet.data 		= packet_data;
-	packet.checksum 	= (g_conf->rx_buffer[i]<<8)|(g_conf->rx_buffer[i+1]);
-	packet.receive_timestamp = ICP_GET_TIME();
+	// Check if chekcsum is OK
+	ICP_DEBUG("R: 0x%04X , E: 0x%04X", ((g_conf->rx_buffer[i]<<8)|(g_conf->rx_buffer[i+1])), (icp_crc16(g_conf->rx_buffer, i)));
+	ICP_CHECK_EXIT_RE(((g_conf->rx_buffer[i]<<8)|(g_conf->rx_buffer[i+1])), (icp_crc16(g_conf->rx_buffer, i)), 
+					"CRC16 Checksums did not match.");
+	ICP_LOG_INFO("CRC16 Checksums OK!");
+	packet.checksum = (g_conf->rx_buffer[i]<<8)|(g_conf->rx_buffer[i+1]);
 
-	// TODO Check if chekcsum is OK
-	
+	packet.receive_timestamp = ICP_GET_TIME();
 	ICP_LOG_INFO("Found a complete packet.");
 
 	if (g_conf->role == RX || g_conf->role == LISTEN_IN ){

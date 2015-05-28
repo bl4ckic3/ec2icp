@@ -401,6 +401,10 @@ int msgarrvd(void *context, char *topicName, int topicLen, MQTTAsync_message *me
 			}
 			if (strncmp(message->payload, "reset", 5) == 0){
 				reset_flag = TRUE;
+				g_access = INACTIVE;
+				g_shudup = INACTIVE;
+				line_is_mine = FALSE;
+				bytes_in = FALSE;
 				break;
 			} 
 			if (strncmp(message->payload, "stopupdate", 10) == 0){
