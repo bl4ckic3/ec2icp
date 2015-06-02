@@ -24,6 +24,7 @@ typedef enum mac_addr_et{
 	NUM_OF_NODES,
 	INVALID_MAC_ADDR
 } mac_addr_t;
+
 /** 
  * TODO
  */
@@ -36,6 +37,8 @@ static char mac_addrs[NUM_OF_NODES][32] = {
 	"TEST",
 	"BUS"
 };
+
+#define CRC_SEED 0x1021
 
 #ifdef __cplusplus
 }
