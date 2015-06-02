@@ -431,7 +431,6 @@ uint8_t icp_process_rx_buffer( void ) {
 	i += packet.data_length;
 
 	// Check if chekcsum is OK
-	ICP_DEBUG("R: 0x%04X , E: 0x%04X", ((g_conf->rx_buffer[i]<<8)|(g_conf->rx_buffer[i+1])), (icp_crc16(g_conf->rx_buffer, i)));
 	ICP_CHECK_EXIT_RE(((g_conf->rx_buffer[i]<<8)|(g_conf->rx_buffer[i+1])), (icp_crc16(g_conf->rx_buffer, i)), 
 					"CRC16 Checksums did not match.");
 	ICP_LOG_INFO("CRC16 Checksums OK!");

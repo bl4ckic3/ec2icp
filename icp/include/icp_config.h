@@ -32,11 +32,8 @@ static mac_addr_t 	local_mac_addr 	= NODE_TEST;
 static mac_addr_t 	local_mac_addr 	= NODE_BUS;
 #endif
 
-
-
 //! Length of the buffer used for constructing a packet and handing it over directly to the user.
 #define BUFFER_LEN ((64*1024)-1) // TODO buffer OVF handling
-
 
 /** 
  * ICP's memory handling functionality.
